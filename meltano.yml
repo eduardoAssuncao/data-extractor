@@ -1,0 +1,51 @@
+version: 1
+default_environment: dev
+project_id: cd935db2-2f4c-4e7a-b8f2-9620619a1afe
+environments:
+- name: dev
+- name: staging
+- name: prod
+
+plugins:
+  extractors:
+  - name: tap-postgres
+    variant: meltanolabs
+    pip_url: git+https://github.com/MeltanoLabs/tap-postgres.git
+    config:
+      host: host.docker.internal    # Host do Docker
+      port: 5000                    # Porta do container source-postgres
+      user: meuuser                 # Usuário do banco de origem
+      password: minhasenha          # Senha do banco de origem
+      database: sourcepostgre       # Nome do banco de origem
+      default_replication_method: FULL_TABLE    # Método de replicação - Mudar para INCREMENTAL?
+      filter_schemas: ["public"]    # Filtra apenas o schema public
+      max_tap_batch_size: 1000      # Tamanho do lote para extração
+      ssl_enable: false             # Desabilita SSL para conexão local
+    select:
+    - public-categories.*
+    - public-customer_customer_demo.*
+    - public-customer_demographics.*
+    - public-customers.*
+    - public-employee_territories.*
+    - public-employees.*
+    - public-orders.*
+    - public-products.*
+    - public-region.*
+    - public-shippers.*
+    - public-suppliers.*
+    - public-territories.*
+    - public-us_states.*
+  loaders:
+  - name: target-postgres
+    variant: meltanolabs
+    pip_url: meltanolabs-target-postgres
+    config:
+      host: host.docker.internal    # Host do Docker
+      port: 5001                    # Porta do container target-postgres
+      user: meuuser                 # Usuário do banco de destino
+      password: minhasenha          # Senha do banco de destino
+      database: targetdb            # Nome do banco de destino
+      default_target_schema: public # Schema de destino no banco de destino
+      ssl_enable: false             # Desabilita SSL para conexão local
+      #add_record_metadata: true     # Adiciona metadados aos registros
+      hard_delete: false            # Não permite deleção física dos registros
